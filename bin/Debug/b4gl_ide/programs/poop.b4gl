@@ -1,3 +1,0 @@
-dim a=48, newline = 10
-
-write(a,newline)

@@ -1,3 +1,0 @@
-dim poop = 48
-
-write(poop)
