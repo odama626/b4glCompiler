@@ -1,0 +1,30 @@
+dim newline = 10;
+dim char = 48
+dim i = 0
+
+while (i<10)
+	char = 48 + i
+	i = i + 1
+	write(char,newline)
+wend
+
+write(newline)
+
+
+'sub add(a,b)
+'	write(a+b)
+'endsub
+
+'sub (a)
+		
+'		add(a,9)
+'		add(a,8)
+'		add(a,7)
+'		add(a,6)
+'		add(a,5)
+'		write(a,newline)
+'endsub
+
+'wtf(char);
+
+'write(newline)

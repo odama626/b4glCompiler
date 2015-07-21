@@ -1,0 +1,32 @@
+dim newline = 10
+dim i = 0
+dim limiter = 10
+dim count = 0
+
+sub writeMe(char)
+	write(char)
+endsub
+
+sub woo(a)
+
+	count = count + 1
+	while (i<limiter)
+		if (i>=5)
+			a = 48+i
+			writeMe(a)	'48 = 0
+		else
+			a = i+65
+			writeMe(a) '65 = A
+		endif
+		i=i+1
+	wend
+	i = 0
+	limiter = limiter/2
+	writeMe(newline)
+	if (limiter > 1)
+		woo(48)
+	endif
+endsub
+
+woo(48)
+write(newline,count+48)

@@ -1,0 +1,4 @@
+dim a = 64
+
+write(a)
+
