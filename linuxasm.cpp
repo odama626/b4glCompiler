@@ -16,6 +16,13 @@ extern string newLabel();
 //////////////////////////////////////////////////
 /////////////////////////////////////////////////
 
+/**
+ *
+ *  Pass variable to function by reference
+ *    with lea rax, [var]
+ *
+**/
+
 //write header info
 void header() {
   emitLn("global main");

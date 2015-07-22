@@ -29,15 +29,15 @@
 1437439034 source:/home/adam/codeblocksProjects/b4gl_native_compiler/winasm.cpp
 	"winasm.h"
 
-1437442417 source:/home/adam/codeblocksProjects/b4glCompiler/linuxasm.cpp
+1437539998 source:/home/adam/codeblocksProjects/b4glCompiler/linuxasm.cpp
 	"linuxasm.h"
 
-1437440504 /home/adam/codeblocksProjects/b4glCompiler/linuxasm.h
+1437523276 /home/adam/codeblocksProjects/b4glCompiler/linuxasm.h
 	<string>
 	<sstream>
 	<iostream>
 
-1437440480 source:/home/adam/codeblocksProjects/b4glCompiler/main.cpp
+1437542341 source:/home/adam/codeblocksProjects/b4glCompiler/main.cpp
 	<stdio.h>
 	<iostream>
 	<string>

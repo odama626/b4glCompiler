@@ -19,12 +19,6 @@
   #define pclose NULL;
 #endif
 
-
-//#include "winasm.h"
-//const int CURRENT_OS = OS_WINDOWS;
-
-
-
 /*  BNF
 
 <program> ::= PROGRAM <top-level decl> <main> '.'
@@ -37,8 +31,8 @@ const char TAB = '\t';
 const char CR = '\r';
 const char LF = '\n';
 char look;
-ifstream *inputFile;
-ofstream *outputFile;
+ifstream *inputFile = NULL;
+ofstream *outputFile = NULL;
 
 string sourceFileName;      //name of source file
 string sourceFileBaseName;  //name of source file without extension
@@ -52,6 +46,7 @@ map<string,int> variables;
 //variables for function parameters
 map<string,int> params;
 int paramCount;
+int base;
 
 
 // global variables from tokens_H
@@ -79,11 +74,15 @@ void error(string s) {
 // report error and halt
 void abort(string s) {
   error(s);
-  inputFile->close();
-  delete inputFile;
-  outputFile->flush();
-  outputFile->close();
-  delete outputFile;
+  if (inputFile != NULL) {
+    inputFile->close();
+    delete inputFile;
+  }
+  if (outputFile != NULL) {
+    outputFile->flush();
+    outputFile->close();
+    delete outputFile;
+  }
   exit(1);
 }
 
@@ -168,17 +167,25 @@ void emitLn(string s) {
 
 //load a parameter to the primary register
 void loadParam(int n) {
-  int offset = 16 + 8 * (paramCount - n);
+  int offset = 16 + 8 * (base - n);
   stringstream ss;
-  ss << "mov rax, [rbp+" << offset << "]";
+  ss << "mov rax, [rbp";
+  if (offset >-1) {
+    ss << "+";
+  }
+  ss << offset << "]";
   emitLn(ss.str());
 }
 
 //store a parameter from the primary register
 void storeParam(int n) {
-  int offset = 16+8*(paramCount-n);
+  int offset = 16+8*(base-n);
   stringstream ss;
-  ss << "mov [rbp+" << offset << "], rax";
+  ss << "mov [rbp";
+  if (offset>-1) {
+    ss << "+";
+  }
+  ss << offset << "], rax";
   emitLn(ss.str());
 }
 
@@ -311,11 +318,17 @@ void matchString(string x) {
 }
 
 // init
-void init(char* input) {
+void init(string input) {
   clearParams();
   lCount = 0;
   lineCount = 1;
   inputFile = new ifstream(input);
+
+  if (!inputFile->good()) {
+    abort("failed to open file \""+input+"\"\n \
+          does the file exist?\n");
+  }
+
   outputFile = new ofstream(sourceFileBaseName+".asm");
   getChar();
   next();
@@ -716,8 +729,10 @@ void clearParams() {
   paramCount = 0;
 }
 
-
-
+//match a semicolon
+void semi() {
+  if (token == OP_SEMICOLON) matchString(";");
+}
 
 //add a new parameter to the table
 void addParam(string n) {
@@ -755,17 +770,67 @@ void formalList() {
     }
   }
   matchString(")");
+  base = paramCount;
+  paramCount = paramCount +2;
+}
+
+//parse and translate a data declaration
+void locDecl() {  // TODO make dim <var> = <val> work
+  next();
+  if (token != SYM_IDENT)
+    expected("Variable Name");
+
+  string name = value;
+  string val = "";
+  addToTable(name,VAR_INT);
+  next();
+  if (token == OP_REL_E) {
+    next();
+    if (token == OP_SUB) {
+      next();
+      val+= "0-";
+    }
+    val+= value;
+    next();
+  } else {
+   val= "0";
+  }
+  addParam(name);
+}
+
+//parse and translate local declarations
+int locDecls() {
+  int n = 0;
+  scan();
+  while (token == SYM_DIM) {
+    locDecl();
+    n++;
+    while (token == OP_COMMA) {
+      locDecl();
+      n++;
+    }
+    semi();
+    scan();
+  }
+  return n;
+  //next();
 }
 
 //intro to a subroutine
-void subProlog(string name) {
+void subProlog(string name, int locVarCount) {
   postLabel(name);
   emitLn("push rbp");
   emitLn("mov rbp, rsp");
+  stringstream ss;
+  ss << "sub rsp, " << (8*locVarCount);
+  emitLn(ss.str());
 }
 
 //ending to a procedure
-void subEpilog() {
+void subEpilog(int locVarCount) {
+  stringstream ss;
+  ss <<"add rsp, " << (8*locVarCount);
+  emitLn(ss.str());
   emitLn("pop rbp");
   Return();
 }
@@ -776,13 +841,15 @@ void doSub() {
   branch(l);
   next();
   string name = value;
-  subProlog(name);
+
   checkDup(name);
   addToTable(name,SYM_SUB);
   next();
   formalList();
+  int locVarCount = locDecls();
+  subProlog(name,locVarCount);
   block();
-  subEpilog();
+  subEpilog(locVarCount);
   postLabel(l);
   matchString("endsub");
   clearParams();
@@ -852,11 +919,6 @@ bool isTerminator(int i) {
   default:
     return false;
   }
-}
-
-//match a semicolon
-void semi() {
-  if (token == OP_SEMICOLON) matchString(";");
 }
 
 //parse and translate a block of statements
@@ -990,10 +1052,7 @@ void compile() {
     ss << "nasm -fwin64 ";
   }
   ss << sourceFileBaseName << ".asm";
-  cout << exec(ss.str()) << endl;
-  //cout << exec("ld -o "+sourceFileBaseName+" "+sourceFileBaseName+".o") << endl;
-  //cout << "compile finished" << endl;
-  //cout << exec(""+sourceFileBaseName) << endl;
+  cout << exec(ss.str());
 }
 
 void link() {
@@ -1005,6 +1064,16 @@ void link() {
     ss << "gcc " << sourceFileBaseName << ".obj -o " << sourceFileBaseName << ".exe";
   }
   cout << exec(ss.str());
+}
+
+void execute() {
+  cout << "running" << endl << endl;
+  stringstream ss;
+  if (CURRENT_OS == OS_LINUX) {
+    ss << "./";
+  }
+  ss << sourceFileBaseName;
+  cout << exec(ss.str()) << endl;
 }
 
 int main(int argc, char* argv[]) {
@@ -1019,6 +1088,7 @@ int main(int argc, char* argv[]) {
   closeFiles(); // close input and output files
   compile();    // invoke assembler
   link();       // invoke the linker
+  execute();    // execute the compile program
   return 0;
 }
 
