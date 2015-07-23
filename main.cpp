@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -12,9 +13,9 @@
   const int CURRENT_OS = OS_LINUX;
   #define _popen NULL;
 #define _pclose NULL;
-#elif _WIN64
+#else
   #include "winasm.h"
-  const int CURRENT_OS = OS_WIN;
+  const int CURRENT_OS = OS_WINDOWS;
   #define popen NULL;
   #define pclose NULL;
 #endif
@@ -50,7 +51,6 @@ map<string,int> params;
 int paramCount;
 int base;
 
-
 // global variables from tokens_H
 extern int token;
 extern string value;
@@ -62,9 +62,14 @@ void clearParams();
 void boolExpression();
 bool inTable(string n);
 
-// read a new character from input stream
-void getChar() {
-  inputFile->get(look);
+//turn debugging on and off
+const bool DEBUG_FLAG = false;
+
+//debugging output
+void debug(string d) {
+  if (DEBUG_FLAG) {
+    cout << d << " in source file [line: " << lineCount << "]" << endl;
+  }
 }
 
 // report an error
@@ -85,7 +90,13 @@ void abort(string s) {
     outputFile->close();
     delete outputFile;
   }
-  exit(1);
+  exit(EXIT_FAILURE);
+}
+
+// read a new character from input stream
+void getChar() {
+  debug("getChar()");
+  inputFile->get(look);
 }
 
 //report what we expected
@@ -187,6 +198,7 @@ bool isParam(string n) {
 
 //recognize a legal variable type
 bool isVarType(string v) {
+  debug("isVarType("+v+")");
   if (!inTable(v))
     abort("Identifier \""+v+"\" not declared");
   switch(symbolTable[v]) {
@@ -203,6 +215,7 @@ bool isVarType(string v) {
 
 //output a string with tab
 void emit(string s) {
+  debug("emit("+s+")");
   s = TAB + s;
   //printf(s.c_str());
   outputFile->write(s.c_str(),s.length());
@@ -219,6 +232,9 @@ void emitLn(string s) {
 void loadParam(int n) {
   int offset = 16 + 8 * (base - n);
   stringstream ss;
+  ss << "loadParam(" << n << ")";
+  debug(ss.str());
+  ss.clear();ss.str("");
   ss << "mov rax, [rbp";
   if (offset >-1) {
     ss << "+";
@@ -231,6 +247,9 @@ void loadParam(int n) {
 void storeParam(int n) {
   int offset = 16+8*(base-n);
   stringstream ss;
+  ss << "storeParam(" << n << ")";
+  debug(ss.str());
+  ss.clear();ss.str("");
   ss << "mov [rbp";
   if (offset>-1) {
     ss << "+";
@@ -241,6 +260,9 @@ void storeParam(int n) {
 
 // match a specific input character
 void match (char x) {
+  stringstream ss;
+  ss << "match(" << x << ")";
+  debug(ss.str());
 //  newLine();
   if (look == x) {
     getChar();
@@ -265,7 +287,6 @@ string newLabel() {
 //post a label to output
 void postLabel(string l) {
   l+=":\n";
-  //cout << l;
   outputFile->write(l.c_str(),l.length());
 }
 
@@ -293,6 +314,7 @@ bool isAlNum(char c) {
 
 // get an identifier
 void getName() {
+  debug("getName()");
   skipWhite();
   if (!isAlpha(look)) {
     expected("Identifier");
@@ -307,6 +329,7 @@ void getName() {
 
 //get a number
 void getNum() {
+  debug("getNum()");
     skipWhite();
   if (!isDigit(look)) {
     expected("Integer");
@@ -320,6 +343,9 @@ void getNum() {
 }
 
 int tableLookup(string table[], string s, int n) {
+  stringstream ss;
+  ss << "tableLookup(table," << s << "," << n <<")";
+  debug(ss.str());
   bool found = false;
   int i = n;
 
@@ -340,6 +366,7 @@ int tableLookup(string table[], string s, int n) {
 
 //get an operator
 void getOp() {
+  debug("getOp()");
   skipWhite();
   value = look;
   token = tableLookup(operatorList,value, OPERATOR_COUNT) + OPERATOR_OFFSET;
@@ -348,6 +375,7 @@ void getOp() {
 
 //get the next input token
 void next() {
+  debug("next()");
   skipWhite();
   if (isAlpha(look)) {
     getName();
@@ -359,12 +387,14 @@ void next() {
 }
 
 void scan() {
+  debug("scan()");
   if (token == SYM_IDENT) {
     token = tableLookup(keywordList, value, KEYWORD_COUNT);
   }
 }
 
 void matchString(string x) {
+  debug("matchString("+x+")");
   if (value.compare(x) != 0) {
     expected("\""+x+"\"");
   }
@@ -373,6 +403,7 @@ void matchString(string x) {
 
 // init
 void init(string input) {
+  debug("init("+input+")");
   clearParams();
   lCount = 0;
   lineCount = 1;
@@ -466,6 +497,7 @@ int getTypeFromTable(string n) {
   checkTable(n);
   return variables[n];
 }
+
 //load a variable
 void loadVariable(string n) {
   if (!inTable(n))
@@ -475,6 +507,7 @@ void loadVariable(string n) {
 
 //parse and translate a math expression
 void factor() {
+  debug("factor()");
   if (token == OP_PAR_O) {
     next();
     boolExpression();
@@ -541,6 +574,7 @@ void lessOrEqual() {
 
 //recognize and translate a less than
 void Less() {
+  debug("Less()");
   next();
   switch(token) {
   case OP_REL_E:
@@ -557,6 +591,7 @@ void Less() {
 
 //recognize and translate a greater than
 void Greater() {
+  debug("Greater()");
   next();
   if (token == OP_REL_E) {
     nextExpression();
@@ -569,6 +604,7 @@ void Greater() {
 
 //parse and translate a relation
 void relation() {
+  debug("relation()");
   expression();
   if (isRelOp(token)) {
     Push();
@@ -588,6 +624,7 @@ void relation() {
 
 //parse and translate a boolean factor with leading not
 void notFactor() {
+  debug("notFactor()");
   if (token == OP_REL_N) {
     next();
     relation();
@@ -599,6 +636,7 @@ void notFactor() {
 
 //parse and translate a boolean term
 void boolTerm() {
+  debug("boolTerm()");
   notFactor();
   while (look == OP_REL_A) {
     Push();
@@ -610,6 +648,7 @@ void boolTerm() {
 
 //recognize and translate a boolean or
 void boolOr() {
+  debug("boolOr()");
   next();
   boolTerm();
   PopOr();
@@ -617,6 +656,7 @@ void boolOr() {
 
 //recognize and translate a exclusive or
 void boolXor() {
+  debug("boolXor()");
   next();
   boolTerm();
   PopXor();
@@ -624,6 +664,7 @@ void boolXor() {
 
 //parse and translate a boolean expression
 void boolExpression() {
+  debug("boolExpression()");
   boolTerm();
   while (isOrOp(token)) {
     Push();
@@ -640,6 +681,7 @@ void boolExpression() {
 
 //parse and translate a math term
 void term() {
+  debug("term()");
   factor();
   while (isMultOp(token)) {
     Push();
@@ -670,6 +712,7 @@ void subtract() {
 
 // parse and translate an expression
 void expression() {
+  debug("expression()");
   if (isAddOp(token)) {
     Clear();
   } else {
@@ -690,6 +733,7 @@ void expression() {
 
 //recognize and translate an if construct
 void doIf() {
+  debug("doIf()");
   next();
   boolExpression();
   string l1,l2;
@@ -710,6 +754,7 @@ void doIf() {
 
 //parse and translate a while statement
 void doWhile() {
+  debug("doWhile()");
   next();
   string l1, l2;
   l1 = newLabel();
@@ -725,6 +770,7 @@ void doWhile() {
 
 //read a single variable
 void readVar() {
+  debug("readVar()");
   checkIdent();
   checkTable(value);
   readIt(value);
@@ -733,6 +779,7 @@ void readVar() {
 
 //process a read statement
 void doRead() {
+  debug("doRead");
   next();
   matchString("(");
   readVar();
@@ -745,6 +792,7 @@ void doRead() {
 
 //process a write statement
 void doWrite() {
+  debug("doWrite");
   string name;
   next();
   matchString("(");
@@ -763,6 +811,7 @@ void doWrite() {
 
 //parse and translate an assignment statement
 void assignment() {
+  debug("assignment()");
   if (!isParam(value)) {
     checkTable(value);
   }
@@ -779,6 +828,7 @@ void assignment() {
 
 //clear function params list
 void clearParams() {
+  debug("clearParams()");
   params.clear();
   paramCount = 0;
 }
@@ -790,6 +840,7 @@ void semi() {
 
 //add a new parameter to the table
 void addParam(string n) {
+  debug("addParam("+n+")");
   if (isParam(n))
     duplicate(n);
   paramCount++;
@@ -799,12 +850,14 @@ void addParam(string n) {
 
 //process a formal parameter
 void formalParam() {
+  debug("formalParam()");
   addParam(value);
   next();
 }
 
 //get type of symbol
 int typeOf(string n) {
+  debug("typeOf("+n+")");
   if (isParam(n)) {
     return VAR_PARAM;
   } else {
@@ -815,6 +868,7 @@ int typeOf(string n) {
 
 //process the formal parameter list of a function
 void formalList() {
+  debug("formalList()");
   matchString("(");
   if (token != OP_PAR_C) {
     //next();
@@ -831,6 +885,7 @@ void formalList() {
 
 //parse and translate a data declaration
 void locDecl() {  // TODO make dim <var> = <val> work
+  debug("locDecl()");
   next();
   if (token != SYM_IDENT)
     expected("Variable Name");
@@ -855,6 +910,7 @@ void locDecl() {  // TODO make dim <var> = <val> work
 
 //parse and translate local declarations
 int locDecls() {
+  debug("locDecls");
   int n = 0;
   scan();
   while (token == SYM_DIM) {
@@ -873,10 +929,14 @@ int locDecls() {
 
 //intro to a subroutine
 void subProlog(string name, int locVarCount) {
+  stringstream ss;
+  ss << "subProlog(" << name << "," << locVarCount << ")";
+  debug(ss.str());
+  ss.clear(); ss.str("");
   postLabel(name);
   emitLn("push rbp");
   emitLn("mov rbp, rsp");
-  stringstream ss;
+
   ss << "sub rsp, " << (8*locVarCount);
   emitLn(ss.str());
 }
@@ -884,6 +944,9 @@ void subProlog(string name, int locVarCount) {
 //ending to a procedure
 void subEpilog(int locVarCount) {
   stringstream ss;
+  ss << "subEpilog(" << locVarCount << ")";
+  debug(ss.str());
+  ss.clear(); ss.str("");
   ss <<"add rsp, " << (8*locVarCount);
   emitLn(ss.str());
   emitLn("pop rbp");
@@ -892,6 +955,7 @@ void subEpilog(int locVarCount) {
 
 //parse and translate a subroutine
 void doSub() {
+  debug("doSub()");
   string l = newLabel();
   branch(l);
   next();
@@ -912,12 +976,14 @@ void doSub() {
 
 //process a parameter
 void param() {
+  debug("param()");
   expression();
   Push();
 }
 
 //process the parameter list for a subroutine call
 int paramList() {
+  debug("paramList()");
   int n = 0;
   matchString("(");
   if (token != OP_PAR_C) {
@@ -935,6 +1001,7 @@ int paramList() {
 
 //process a subroutine
 void callSub(string name) {
+  debug("callSub("+name+")");
   int n;
   next();
   n = paramList();
@@ -944,6 +1011,7 @@ void callSub(string name) {
 
 //decide if a statement is an assignment or a subroutine call
 void assignmentOrSub() {
+  debug("assigmentOrSub()");
   int identifierType = typeOf(value);
   switch(identifierType) {
   case SYM_SUB:
@@ -982,6 +1050,7 @@ bool isTerminator(int i) {
 
 //parse and translate a block of statements
 void block() {
+  debug("block()");
   scan();
   while (!isTerminator(token)) {
     switch (token) {
@@ -1012,6 +1081,7 @@ void block() {
 }
 
 int getVarType() {
+  debug("getVarType()");
   if (value == "$")
     return TYPE_STRING;
   if (value == "#")
@@ -1021,6 +1091,7 @@ int getVarType() {
 
 //allocate storage for a static variable
 void allocate(string name, string value) {
+  debug("allocate("+name+","+value+")");
   stringstream ss;
   ss << name << ":" << TAB << "DW " << value;
   emitLn(ss.str());
@@ -1029,6 +1100,7 @@ void allocate(string name, string value) {
 
 //allocate storage for a variable
 void alloc() {
+  debug("alloc()");
   next();
   if (token != SYM_IDENT)
     expected("Variable Name");
@@ -1058,11 +1130,13 @@ void alloc() {
 
 //parse and translate global declarations
 void topDecls() {
+  debug("topDecls()");
   scan();
   while (token == SYM_DIM) {
     alloc();
     while (token == OP_COMMA) {
       alloc();
+
     }
     semi();
     scan();
@@ -1073,6 +1147,7 @@ void topDecls() {
 //parse and translate a program
 void prog() {
   //matchString("b4gl"); //handles program header part
+  debug("prog()");
   semi();
   header();
   topDecls();
@@ -1084,28 +1159,38 @@ void prog() {
   //semi();
   epilog();
 }
-
+#ifdef __linux
 string exec(string cmd) {  // TODO use _pipe on windows
   FILE* pipe;
-  if (CURRENT_OS == OS_LINUX) {
-    pipe = popen(cmd.c_str(), "r");
-  } else if (CURRENT_OS == OS_WINDOWS) {
-    pipe = _popen(cmd.c_str(), "r");
-  }
-  if (!pipe) return "ERROR";
+  pipe = popen(cmd.c_str(), "r");
+  if (!pipe) abort("Could not open file \""+cmd+"\"");
   char buffer[128];
   string result = "";
   while (!feof(pipe)) {
     if (fgets(buffer,128, pipe) != NULL)
       result += buffer;
   }
-  if (CURRENT_OS == OS_LINUX) {
-    pclose(pipe);
-  } else if (CURRENT_OS == OS_WINDOWS) {
-    _pclose(pipe);
-  }
+  pclose(pipe);
   return result;
 }
+
+#else
+string exec(string cmd) {
+  debug("exec("+cmd+")");
+  string tmp = sourceFileBaseName + ".tmp";
+  cmd += " >> "+tmp;
+  system(cmd.c_str());
+  ifstream file (tmp, std::ios::in);
+  string result;
+  if (file) {
+    while (!file.eof())
+      result+=file.get();
+    file.close();
+  }
+  remove(tmp.c_str());
+  return result;
+}
+#endif
 
 void closeFiles() {
   inputFile->close();
@@ -1114,17 +1199,16 @@ void closeFiles() {
   delete outputFile;
   delete inputFile;
 }
-
 void compile() {
   cout << "compiling" << endl;
   stringstream ss;
   if (CURRENT_OS == OS_LINUX) {
     ss << "nasm -felf64 -o " << sourceFileBaseName << ".o ";
   } else if (CURRENT_OS == OS_WINDOWS) {
-    ss << "nasm -fwin64 -o " << sourceFileBaseName << ".obj ";
+    ss << "nasm -f win64 -o " << sourceFileBaseName << ".obj ";
   }
   ss << sourceFileBaseName << ".asm";
-  cout << exec(ss.str());
+  cout << exec(ss.str()) << endl;
 }
 
 void link() {
@@ -1133,9 +1217,10 @@ void link() {
   if (CURRENT_OS == OS_LINUX) {
     ss << "gcc " << sourceFileBaseName << ".o -o " << sourceFileBaseName;
   } else if (CURRENT_OS == OS_WINDOWS) {
-    ss << "gcc " << sourceFileBaseName << ".obj -o " << sourceFileBaseName << ".exe";
+    ss << "GoLink /console msvcrt.dll /entry main ";
+    ss << sourceFileBaseName << ".obj";
   }
-  cout << exec(ss.str());
+  cout << exec(ss.str()) << endl;
 }
 
 void execute() {
@@ -1162,7 +1247,9 @@ int main(int argc, char* argv[]) {
   link();       // invoke the linker
   execute();    // execute the compile program
 
+  if (DEBUG_FLAG) {
   dumpSymbolTable();
+  }
   return 0;
 }
 

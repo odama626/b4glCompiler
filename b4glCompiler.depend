@@ -62,3 +62,31 @@
 1437546358 source:/home/adam/codeblocksProjects/b4glCompiler/tokens.cpp
 	"tokens.h"
 
+1437640341 source:c:\users\adam\desktop\b4glcompiler\b4glcompiler\winasm.cpp
+	"winasm.h"
+
+1437618008 c:\users\adam\desktop\b4glcompiler\b4glcompiler\winasm.h
+	<string>
+	<sstream>
+	<iostream>
+
+1437641391 source:c:\users\adam\desktop\b4glcompiler\b4glcompiler\main.cpp
+	<stdio.h>
+	<stdlib.h>
+	<iostream>
+	<string>
+	<fstream>
+	<sstream>
+	<map>
+	"tokens.h"
+	"linuxasm.h"
+	"winasm.h"
+
+1437618008 c:\users\adam\desktop\b4glcompiler\b4glcompiler\tokens.h
+	<string>
+
+1437618008 c:\users\adam\desktop\b4glcompiler\b4glcompiler\linuxasm.h
+	<string>
+	<sstream>
+	<iostream>
+

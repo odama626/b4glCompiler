@@ -1,0 +1,5 @@
+dim a
+
+a = 48
+
+write(a)
