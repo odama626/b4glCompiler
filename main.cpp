@@ -43,6 +43,8 @@ int lineCount; // source file lineCount
 //variable table
 map<string,int> variables;
 
+map<string,int> symbolTable;
+
 //variables for function parameters
 map<string,int> params;
 int paramCount;
@@ -101,6 +103,38 @@ void duplicate(string s) {
   abort("Duplicate Identifier "+s);
 }
 
+void dumpSymbolTable() {
+  cout << "::Symbol Table::::::::::::::::::::::::" << endl;
+  for(map<string,int>::iterator it=symbolTable.begin(); it!=symbolTable.end();it++) {
+    cout << it->first << TAB << TAB << TAB;
+    switch(it->second) {
+    case TYPE_INT:
+      cout << "int";
+      break;
+    case TYPE_CHAR:
+      cout << "char";
+      break;
+    case TYPE_LONG:
+      cout << "long";
+      break;
+    case TYPE_STRING:
+      cout << "string";
+      break;
+    case TYPE_FLOAT:
+      cout << "float";
+      break;
+    case TYPE_SUB:
+      cout << "subroutine";
+      break;
+    default:
+      cout << "unknown token " << it->second;
+    }
+    cout << endl;
+  }
+  cout << "::::::::::::::::::::::::::::::::::::::" << endl;
+}
+
+//make sure current token is an identifier
 void checkIdent() {
   if (token != SYM_IDENT)
     expected("Identifier");
@@ -149,6 +183,22 @@ int paramNumber(string n) {
 //see if an identifier is a parameter
 bool isParam(string n) {
   return params.find(n) != params.end();
+}
+
+//recognize a legal variable type
+bool isVarType(string v) {
+  if (!inTable(v))
+    abort("Identifier \""+v+"\" not declared");
+  switch(symbolTable[v]) {
+  case TYPE_CHAR:
+  case TYPE_FLOAT:
+  case TYPE_INT:
+  case TYPE_LONG:
+  case TYPE_STRING:
+    return true;
+  default:
+    return false;
+  }
 }
 
 //output a string with tab
@@ -280,6 +330,11 @@ int tableLookup(string table[], string s, int n) {
       i--;
     }
   }
+  if (s == "$") {
+    return TYPE_STRING;
+  } else if (s == "#") {
+    return TYPE_FLOAT;
+  }
   return i;
 }
 
@@ -289,7 +344,6 @@ void getOp() {
   value = look;
   token = tableLookup(operatorList,value, OPERATOR_COUNT) + OPERATOR_OFFSET;
   getChar();
-
 }
 
 //get the next input token
@@ -386,7 +440,7 @@ bool isRelOp(int c) {
 
 //look for symbol in table
 bool inTable(string n) {
-  return variables.find(n) != variables.end();
+  return symbolTable.find(n) != symbolTable.end();
 }
 
 //check to see if identifier is in the symbol table
@@ -405,7 +459,7 @@ void checkDup(string n) {
 //add symbol to table
 void addToTable(string n, int type) {
   checkDup(n);
-  variables[n] = type;
+  symbolTable[n] = type;
 }
 
 int getTypeFromTable(string n) {
@@ -754,7 +808,8 @@ int typeOf(string n) {
   if (isParam(n)) {
     return VAR_PARAM;
   } else {
-    return getTypeFromTable(n);
+    return symbolTable[n];
+    //return getTypeFromTable(n);
   }
 }
 
@@ -782,7 +837,7 @@ void locDecl() {  // TODO make dim <var> = <val> work
 
   string name = value;
   string val = "";
-  addToTable(name,VAR_INT);
+  addToTable(name,TYPE_INT);
   next();
   if (token == OP_REL_E) {
     next();
@@ -895,7 +950,11 @@ void assignmentOrSub() {
     callSub(value);
     //next();
     break;
-  case VAR_INT:
+  case TYPE_INT:
+  case TYPE_STRING:
+  case TYPE_LONG:
+  case TYPE_CHAR:
+  case TYPE_FLOAT:
   case VAR_PARAM:
     assignment();
     break;
@@ -952,6 +1011,14 @@ void block() {
   }
 }
 
+int getVarType() {
+  if (value == "$")
+    return TYPE_STRING;
+  if (value == "#")
+    return TYPE_FLOAT;
+  return TYPE_INT;
+}
+
 //allocate storage for a static variable
 void allocate(string name, string value) {
   stringstream ss;
@@ -968,8 +1035,13 @@ void alloc() {
 
   string name = value;
   string val = "";
-  addToTable(name,VAR_INT);
   next();
+  int type = getVarType();
+
+  if (type != TYPE_INT)
+    next();
+
+  addToTable(name,type);
   if (token == OP_REL_E) {
     next();
     if (token == OP_SUB) {
@@ -1047,9 +1119,9 @@ void compile() {
   cout << "compiling" << endl;
   stringstream ss;
   if (CURRENT_OS == OS_LINUX) {
-    ss << "nasm -felf64 ";
+    ss << "nasm -felf64 -o " << sourceFileBaseName << ".o ";
   } else if (CURRENT_OS == OS_WINDOWS) {
-    ss << "nasm -fwin64 ";
+    ss << "nasm -fwin64 -o " << sourceFileBaseName << ".obj ";
   }
   ss << sourceFileBaseName << ".asm";
   cout << exec(ss.str());
@@ -1089,6 +1161,8 @@ int main(int argc, char* argv[]) {
   compile();    // invoke assembler
   link();       // invoke the linker
   execute();    // execute the compile program
+
+  dumpSymbolTable();
   return 0;
 }
 

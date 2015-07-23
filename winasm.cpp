@@ -19,12 +19,16 @@ extern string newLabel();
 //write header info
 void header() {
   emitLn("global main");
+  emitLn("extern _GetStdHandle@4");
+  emitLn("extern _WriteFile@20");
+  emitLn("extern _ExitProcess@4");
   emitLn("");
   emitLn("section .data");
   //work around for write function
   // TODO find a way to mov eax into rsi
   // and remove the byte buffer
   emitLn("global_byte_buffer: DB 0");
+  emitLn("global_byte_buffer_end:");
 }
 
 //write the prolog
@@ -35,7 +39,8 @@ void prolog() {
 
 //write the epilog
 void epilog() {
-  emitLn("RET");
+  emitLn("push 0");
+  emitLn("call _ExitProcess@4");
 }
 
 //Clear the primary register
@@ -244,13 +249,26 @@ int 10h
 
 //write variable from primary register
 void writeIt() {
-  //emitLn("mov [global_byte_buffer], al"); // temporary work around
+  emitLn("push -11");
+  emitLn("call _GetStdHandle@4");
+  emitLn("mov rbx, rax");
+  emitLn("push 0");
+  emitLn("lea rax, [ebp-8]");
+  emitLn("push rax");
+  emitLn("push (global_byte_buffer_end-global_byte_buffer)");
+  emitLn("push global_byte_buffer");
+  emitLn("push rbx");
+  emitLn("call _WriteFile@20");
+
+
+
+  /*//emitLn("mov [global_byte_buffer], al"); // temporary work around
   emitLn("mov ah, 1"); // the system interprets 4 as write
   emitLn("mov rdi, 1"); // standard output (terminal)
   emitLn("mov bx, 7");
   //emitLn("mov al, global_byte_buffer");
   emitLn("mov rdx, 1");
-  emitLn("int 10h");
+  emitLn("int 10h");*/
 }
 
 //adjust the stack pointer upwards by n bytes

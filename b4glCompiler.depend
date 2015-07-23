@@ -29,7 +29,7 @@
 1437439034 source:/home/adam/codeblocksProjects/b4gl_native_compiler/winasm.cpp
 	"winasm.h"
 
-1437539998 source:/home/adam/codeblocksProjects/b4glCompiler/linuxasm.cpp
+1437542548 source:/home/adam/codeblocksProjects/b4glCompiler/linuxasm.cpp
 	"linuxasm.h"
 
 1437523276 /home/adam/codeblocksProjects/b4glCompiler/linuxasm.h
@@ -37,7 +37,7 @@
 	<sstream>
 	<iostream>
 
-1437542341 source:/home/adam/codeblocksProjects/b4glCompiler/main.cpp
+1437607021 source:/home/adam/codeblocksProjects/b4glCompiler/main.cpp
 	<stdio.h>
 	<iostream>
 	<string>
@@ -48,7 +48,7 @@
 	"linuxasm.h"
 	"winasm.h"
 
-1437436060 /home/adam/codeblocksProjects/b4glCompiler/tokens.h
+1437549089 /home/adam/codeblocksProjects/b4glCompiler/tokens.h
 	<string>
 
 1437437737 /home/adam/codeblocksProjects/b4glCompiler/winasm.h
@@ -56,6 +56,9 @@
 	<sstream>
 	<iostream>
 
-1437439034 source:/home/adam/codeblocksProjects/b4glCompiler/winasm.cpp
+1437605118 source:/home/adam/codeblocksProjects/b4glCompiler/winasm.cpp
 	"winasm.h"
+
+1437546358 source:/home/adam/codeblocksProjects/b4glCompiler/tokens.cpp
+	"tokens.h"
 

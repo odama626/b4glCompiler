@@ -25,7 +25,7 @@ const int SYM_WRITE     = 10;
 const int SYM_SUB       = 11;
 const int SYM_END_SUB   = 12;
 
-const int VAR_INT       = 0; // integers
+//const int VAR_INT       = 0; // integers
 const int VAR_PARAM     = 10;// sub parameters
         //SYM_SUB       = 11;   subroutines
 
@@ -47,6 +47,14 @@ const int OP_REL_N      = 1012; // !
 const int OP_REL_A      = 1013; // &
 const int OP_COMMA      = 1014; // ,
 const int OP_SEMICOLON  = 1015; // ;
+
+const int TYPE_INT      = 0;
+const int TYPE_CHAR     = 1;
+const int TYPE_LONG     = 2;
+const int TYPE_STRING   = 3;
+const int TYPE_FLOAT    = 4;
+
+const int TYPE_SUB      = 11;
 
 
 const int KEYWORD_COUNT = 12;

@@ -1,7 +1,7 @@
 dim newline = 10
 dim i = 0
-dim limiter = 10
-dim count = 0
+dim limiter$ = 10
+dim count# = 0
 
 sub writeMe(char)
 	write(char)
@@ -29,4 +29,22 @@ sub woo(a)
 endsub
 
 woo(48)
+
+sub localVarTest()
+	dim a
+	a = 78
+	i = i + 1
+	if (i<10)
+		write(40)
+		if (i=1)
+			a=80
+		endif
+		localVarTest()
+		write(41)
+	endif
+	write(a)
+endsub
+
+localVarTest()
+
 write(newline,count+48)
