@@ -1,0 +1,8 @@
+dim i = 0
+
+while (i<10)
+	write(i+48)
+	i=i+1
+wend
+
+write(10)

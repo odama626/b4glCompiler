@@ -1,0 +1,7 @@
+dim a= 48
+
+sub printr(b)
+	write(b,10)
+endsub
+
+printr(a)

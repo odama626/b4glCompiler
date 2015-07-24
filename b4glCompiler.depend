@@ -62,15 +62,15 @@
 1437546358 source:/home/adam/codeblocksProjects/b4glCompiler/tokens.cpp
 	"tokens.h"
 
-1437640341 source:c:\users\adam\desktop\b4glcompiler\b4glcompiler\winasm.cpp
+1437709277 source:c:\users\adam\desktop\b4glcompiler\b4glcompiler\winasm.cpp
 	"winasm.h"
 
-1437618008 c:\users\adam\desktop\b4glcompiler\b4glcompiler\winasm.h
+1437709216 c:\users\adam\desktop\b4glcompiler\b4glcompiler\winasm.h
 	<string>
 	<sstream>
 	<iostream>
 
-1437641391 source:c:\users\adam\desktop\b4glcompiler\b4glcompiler\main.cpp
+1437720788 source:c:\users\adam\desktop\b4glcompiler\b4glcompiler\main.cpp
 	<stdio.h>
 	<stdlib.h>
 	<iostream>
@@ -79,14 +79,22 @@
 	<sstream>
 	<map>
 	"tokens.h"
+	"argumentParser.h"
 	"linuxasm.h"
 	"winasm.h"
 
-1437618008 c:\users\adam\desktop\b4glcompiler\b4glcompiler\tokens.h
+1437721326 c:\users\adam\desktop\b4glcompiler\b4glcompiler\tokens.h
 	<string>
 
-1437618008 c:\users\adam\desktop\b4glcompiler\b4glcompiler\linuxasm.h
+1437709213 c:\users\adam\desktop\b4glcompiler\b4glcompiler\linuxasm.h
 	<string>
 	<sstream>
 	<iostream>
+
+1437721431 source:c:\users\adam\desktop\b4glcompiler\b4glcompiler\argumentparser.cpp
+	"argumentParser.h"
+
+1437721494 c:\users\adam\desktop\b4glcompiler\b4glcompiler\argumentparser.h
+	<string>
+	<sstream>
 

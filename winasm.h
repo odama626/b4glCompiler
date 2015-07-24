@@ -44,6 +44,12 @@ void PopDiv();
 //store primary to variable
 void StoreVar(std::string);
 
+//load a parameter to the primary register
+void loadParam(int n);
+
+//store a parameter from the primary register
+void storeParam(int n);
+
 //complement the primary register
 void NotIt();
 

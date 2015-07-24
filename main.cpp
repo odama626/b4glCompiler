@@ -5,17 +5,19 @@
 #include <fstream>
 #include <sstream>
 #include <map>
+
 #include "tokens.h"
+#include "argumentParser.h"
 
 
 #ifdef __linux
   #include "linuxasm.h"
-  const int CURRENT_OS = OS_LINUX;
+  int CURRENT_OS = OS_LINUX;
   #define _popen NULL;
 #define _pclose NULL;
 #else
   #include "winasm.h"
-  const int CURRENT_OS = OS_WINDOWS;
+  int CURRENT_OS = OS_WINDOWS;
   #define popen NULL;
   #define pclose NULL;
 #endif
@@ -63,11 +65,14 @@ void boolExpression();
 bool inTable(string n);
 
 //turn debugging on and off
-const bool DEBUG_FLAG = false;
+bool DEBUG_FLAG = false;
 
 //debugging output
 void debug(string d) {
   if (DEBUG_FLAG) {
+    if (d.find("\n") != string::npos) {
+      d = d.replace(d.find("\n"),2,"");
+    }
     cout << d << " in source file [line: " << lineCount << "]" << endl;
   }
 }
@@ -221,41 +226,9 @@ void emit(string s) {
   outputFile->write(s.c_str(),s.length());
 }
 
-
-
 //output a string with tab and crlf
 void emitLn(string s) {
   emit(s+"\n");
-}
-
-//load a parameter to the primary register
-void loadParam(int n) {
-  int offset = 16 + 8 * (base - n);
-  stringstream ss;
-  ss << "loadParam(" << n << ")";
-  debug(ss.str());
-  ss.clear();ss.str("");
-  ss << "mov rax, [rbp";
-  if (offset >-1) {
-    ss << "+";
-  }
-  ss << offset << "]";
-  emitLn(ss.str());
-}
-
-//store a parameter from the primary register
-void storeParam(int n) {
-  int offset = 16+8*(base-n);
-  stringstream ss;
-  ss << "storeParam(" << n << ")";
-  debug(ss.str());
-  ss.clear();ss.str("");
-  ss << "mov [rbp";
-  if (offset>-1) {
-    ss << "+";
-  }
-  ss << offset << "], rax";
-  emitLn(ss.str());
 }
 
 // match a specific input character
@@ -289,7 +262,6 @@ void postLabel(string l) {
   l+=":\n";
   outputFile->write(l.c_str(),l.length());
 }
-
 
 // recognize an alpha character
 bool isAlpha(char c) {
@@ -1238,9 +1210,10 @@ int main(int argc, char* argv[]) {
     std::cerr << "no parameters specified" << std::endl;
     return 1;
   }
-  sourceFileName = argv[1];
-  sourceFileBaseName = sourceFileName.substr(0,sourceFileName.find_last_of('.'));
-  init(argv[1]);
+  parseArgs(argc, argv);
+  //sourceFileName = argv[1];
+  //sourceFileBaseName = sourceFileName.substr(0,sourceFileName.find_last_of('.'));
+  init(sourceFileName);
   prog();       //parse program into 8086
   closeFiles(); // close input and output files
   compile();    // invoke assembler

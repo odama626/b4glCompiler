@@ -10,6 +10,8 @@ extern bool inTable(string);
 extern void undefined(string);
 extern string newLabel();
 
+extern int base;
+
 /////////////////////////////////////////////////////
 ////////////////////////////////////////////////////
 /// CPU SPECIFIC CODES! ///////////////////////////
@@ -108,6 +110,30 @@ void StoreVar(string name) {
     undefined(ss.str());
   }
   ss << "mov [" << name << "], ax";
+  emitLn(ss.str());
+}
+
+//load a parameter to the primary register
+void loadParam(int n) {
+  int offset = 16 + 8 * (base - n);
+  stringstream ss;
+  ss << "mov rax, [rbp";
+  if (offset >-1) {
+    ss << "+";
+  }
+  ss << offset << "]";
+  emitLn(ss.str());
+}
+
+//store a parameter from the primary register
+void storeParam(int n) {
+  int offset = 16+8*(base-n);
+  stringstream ss;
+  ss << "mov [rbp";
+  if (offset>-1) {
+    ss << "+";
+  }
+  ss << offset << "], rax";
   emitLn(ss.str());
 }
 

@@ -1,0 +1,5 @@
+dim a
+
+if (a=0)
+	write(49)
+endif

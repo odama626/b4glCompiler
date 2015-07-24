@@ -6,8 +6,8 @@
 //keywords and token types
 
 // constants to determine OS
-const int OS_LINUX      = 0;
-const int OS_WINDOWS    = 1;
+int OS_LINUX      = 0;
+int OS_WINDOWS    = 1;
 
 const int SYM_DIGIT     = -1;
 const int SYM_IDENT     = 0; // must be 0 to prevent infinite loops
