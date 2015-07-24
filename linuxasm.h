@@ -101,6 +101,12 @@ void readIt(std::string);
 //write variable from primary register
 void writeIt();
 
+//intro to a subroutine
+void subProlog(std::string name, int locVarCount);
+
+//ending to a procedure
+void subEpilog(int locVarCount);
+
 //adjust the stack pointer upwards by n bytes
 void cleanStack(int);
 

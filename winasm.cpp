@@ -8,6 +8,7 @@ extern void emitLn(string);
 extern void postLabel(string);
 extern bool inTable(string);
 extern void undefined(string);
+extern void debug(string);
 extern string newLabel();
 
 extern int base;
@@ -278,16 +279,32 @@ void writeIt() {
   emitLn("mov rcx, global_char_format");
   emitLn("mov rdx, qword[global_byte_buffer]");
   emitLn("call printf");
+}
 
+//intro to a subroutine
+void subProlog(string name, int locVarCount) {
+  stringstream ss;
+  ss << "subProlog(" << name << "," << locVarCount << ")";
+  debug(ss.str());
+  ss.clear(); ss.str("");
+  postLabel(name);
+  emitLn("push rbp");
+  emitLn("mov rbp, rsp");
 
+  ss << "sub rsp, " << (8*locVarCount);
+  emitLn(ss.str());
+}
 
-  /*//emitLn("mov [global_byte_buffer], al"); // temporary work around
-  emitLn("mov ah, 1"); // the system interprets 4 as write
-  emitLn("mov rdi, 1"); // standard output (terminal)
-  emitLn("mov bx, 7");
-  //emitLn("mov al, global_byte_buffer");
-  emitLn("mov rdx, 1");
-  emitLn("int 10h");*/
+//ending to a procedure
+void subEpilog(int locVarCount) {
+  stringstream ss;
+  ss << "subEpilog(" << locVarCount << ")";
+  debug(ss.str());
+  ss.clear(); ss.str("");
+  ss <<"add rsp, " << (8*locVarCount);
+  emitLn(ss.str());
+  emitLn("pop rbp");
+  Return();
 }
 
 //adjust the stack pointer upwards by n bytes

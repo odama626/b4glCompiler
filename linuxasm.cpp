@@ -277,6 +277,32 @@ void writeIt() {
   emitLn("syscall");
 }
 
+//intro to a subroutine
+void subProlog(string name, int locVarCount) {
+  stringstream ss;
+  ss << "subProlog(" << name << "," << locVarCount << ")";
+  debug(ss.str());
+  ss.clear(); ss.str("");
+  postLabel(name);
+  emitLn("push rbp");
+  emitLn("mov rbp, rsp");
+
+  ss << "sub rsp, " << (8*locVarCount);
+  emitLn(ss.str());
+}
+
+//ending to a procedure
+void subEpilog(int locVarCount) {
+  stringstream ss;
+  ss << "subEpilog(" << locVarCount << ")";
+  debug(ss.str());
+  ss.clear(); ss.str("");
+  ss <<"add rsp, " << (8*locVarCount);
+  emitLn(ss.str());
+  emitLn("pop rbp");
+  Return();
+}
+
 //adjust the stack pointer upwards by n bytes
 void cleanStack(int n) {
   stringstream ss;
