@@ -34,7 +34,7 @@
 				<Option output="b4glCompilerWindows" prefix_auto="1" extension_auto="1" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="test.txt" />
+				<Option parameters="examples/test.txt" />
 			</Target>
 			<Target title="Linux">
 				<Option output="b4glCompilerLinux" prefix_auto="1" extension_auto="1" />
@@ -47,6 +47,8 @@
 			<Add option="-std=c++11" />
 			<Add option="-Wall" />
 		</Compiler>
+		<Unit filename="argumentParser.cpp" />
+		<Unit filename="argumentParser.h" />
 		<Unit filename="linuxasm.cpp">
 			<Option target="Debug" />
 			<Option target="Release" />

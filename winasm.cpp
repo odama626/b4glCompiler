@@ -291,7 +291,7 @@ void subProlog(string name, int locVarCount) {
   emitLn("push rbp");
   emitLn("mov rbp, rsp");
 
-  ss << "sub rsp, " << (8*locVarCount);
+  ss << "sub rsp, " << (8*locVarCount)+24;
   emitLn(ss.str());
 }
 
@@ -301,7 +301,7 @@ void subEpilog(int locVarCount) {
   ss << "subEpilog(" << locVarCount << ")";
   debug(ss.str());
   ss.clear(); ss.str("");
-  ss <<"add rsp, " << (8*locVarCount);
+  ss <<"add rsp, " << (8*locVarCount)+24;
   emitLn(ss.str());
   emitLn("pop rbp");
   Return();
